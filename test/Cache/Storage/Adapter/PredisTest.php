@@ -158,6 +158,33 @@ class PredisTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($this->storage->hasItem('key2'));
     }
 
+    public function testDeleteItemClearsTags()
+    {
+        $key = 'key';
+        $this->assertTrue($this->storage->setItem($key, 'val'));
+        $this->assertTrue($this->storage->setTags($key, ['tag']));
+        $this->assertTrue($this->storage->removeItem($key));
+        $this->assertFalse($this->storage->hasItem($key));
+        $this->assertFalse($this->storage->getTags($key));
+    }
+
+    public function testDeleteItemsClearsTags()
+    {
+        $this->assertTrue($this->storage->setItem('key1', 'val1'));
+        $this->assertTrue($this->storage->setTags('key1', ['tag']));
+
+        $this->assertTrue($this->storage->setItem('key2', 'val2'));
+        $this->assertTrue($this->storage->setTags('key2', ['tag']));
+
+        $this->assertEquals(2, $this->storage->removeItems(['key1','key2']));
+
+        $this->assertFalse($this->storage->hasItem('key1'));
+        $this->assertFalse($this->storage->getTags('key1'));
+
+        $this->assertFalse($this->storage->hasItem('key2'));
+        $this->assertFalse($this->storage->getTags('key2'));
+    }
+
     public function testIncrementItem()
     {
         $key = 'key';
@@ -179,7 +206,94 @@ class PredisTest extends \PHPUnit\Framework\TestCase
 
     public function testClearByPrefix()
     {
-        
+
+    }
+
+    public function testSetTagsOnNonExistentItemsReturnsFalse()
+    {
+        $this->assertFalse($this->storage->setTags('key', ['tag1', 'tag2', 'tag3']));
+    }
+
+    public function testSetGetTags()
+    {
+        $key = 'key';
+        $tags = ['tag1', 'tag2', 'tag3'];
+        $this->assertTrue($this->storage->setItem($key, 100));
+        $this->assertTrue($this->storage->setTags($key, $tags));
+
+        $res_tags = $this->storage->getTags($key);
+
+        foreach($tags as $tag)
+        {
+            $this->assertTrue(in_array($tag, $res_tags));
+        }
+    }
+
+    public function testSetEmptyArrayClearsTags()
+    {
+        $key = 'key';
+        $tags = ['tag1', 'tag2', 'tag3'];
+        $this->assertTrue($this->storage->setItem($key, 100));
+        $this->assertTrue($this->storage->setTags($key, $tags));
+
+        $res_tags = $this->storage->getTags($key);
+
+        foreach($tags as $tag)
+        {
+            $this->assertTrue(in_array($tag, $res_tags));
+        }
+
+        $this->storage->setTags($key, []);
+
+        $res_tags = $this->storage->getTags($key);
+
+        $this->assertEmpty($res_tags);
+    }
+
+    public function testClearByTagWhenOnlyOneOfTheGivenTagsMustMatch()
+    {
+        $key_delete = 'key_delete';
+        $key_keep = 'key_keep';
+        $tags = ['tag1', 'tag2', 'tag3'];
+        $this->assertTrue($this->storage->setItem($key_delete, 100));
+        $this->assertTrue($this->storage->setItem($key_keep, 100));
+        $this->assertTrue($this->storage->setTags($key_delete, $tags));
+        $this->assertTrue($this->storage->setTags($key_keep, ['tag3']));
+
+        $this->storage->clearByTags(['tag1','tag2'], true);
+
+        $this->assertFalse($this->storage->hasItem($key_delete));
+        $this->assertTrue($this->storage->hasItem($key_keep));
+    }
+
+    public function testClearByTagWhenAllGivenTagsMustMatch()
+    {
+        $key_delete = 'key_delete';
+        $key_keep = 'key_keep';
+
+        $this->assertTrue($this->storage->setItem($key_delete, 100));
+        $this->assertTrue($this->storage->setItem($key_keep, 100));
+
+        $this->assertTrue($this->storage->setTags($key_delete, ['tag1', 'tag2', 'tag3']));
+        $this->assertTrue($this->storage->setTags($key_keep, ['tag1', 'tag2']));
+
+        $this->storage->clearByTags(['tag1', 'tag2', 'tag3']);
+
+        $this->assertFalse($this->storage->hasItem($key_delete));
+        $this->assertTrue($this->storage->hasItem($key_keep));
+    }
+
+    public function testSetTagsUpdatesTags()
+    {
+        $key = 'key';
+        $tags = ['tag1', 'tag2', 'tag3'];
+        $this->assertTrue($this->storage->setItem($key, 100));
+        $this->assertTrue($this->storage->setTags($key, $tags));
+        $this->assertTrue($this->storage->setTags($key, ['new_tag1', 'new_tag2']));
+
+        $res_tags = $this->storage->getTags($key);
+
+        $this->assertEquals(['new_tag2', 'new_tag1'], $res_tags);
     }
 
     // TODO: Test clearByNamespace, clearByPrefix, flush, getTotalSpace, setTags, getTags, clearByTags

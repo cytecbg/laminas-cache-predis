@@ -231,6 +231,13 @@ class Predis extends AbstractAdapter implements
     {
         $client = $this->getPredisClient();
 
+        $tags = $this->getTags($normalizedKey);
+
+        if($tags)
+        {
+            $this->setTags($normalizedKey, []);
+        }
+
         return (bool)$client->del([$normalizedKey]);
     }
 
@@ -240,6 +247,16 @@ class Predis extends AbstractAdapter implements
     protected function internalRemoveItems(array & $normalizedKeys)
     {
         $client = $this->getPredisClient();
+
+        foreach($normalizedKeys as $normalizedKey)
+        {
+            $tags = $this->getTags($normalizedKey);
+
+            if($tags)
+            {
+                $this->setTags($normalizedKey, []);
+            }
+        }
 
         return $client->del($normalizedKeys);
     }
@@ -317,7 +334,41 @@ class Predis extends AbstractAdapter implements
      */
     public function setTags($key, array $tags)
     {
+        $client = $this->getPredisClient();
 
+        if(!$this->hasItem($key))
+        {
+            return false;
+        }
+
+        // get the tags the key has
+        $key_tags = $this->getTags($key);
+
+        if($key_tags)
+        {
+            // remove the key from each tags set
+            foreach($key_tags as $tag)
+            {
+                $client->srem('tags:'.$tag, $key);
+            }
+
+            // remove the tags in the key tag set
+            $client->del([$key.':tags']);
+        }
+
+        if($tags)
+        {
+            // add the tags to the key tag set
+            $client->sadd($key.':tags', $tags);
+
+            // add the key to each tags set
+            foreach($tags as $tag)
+            {
+                $client->sadd('tags:'.$tag, $key);
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -325,7 +376,11 @@ class Predis extends AbstractAdapter implements
      */
     public function getTags($key)
     {
+        $client = $this->getPredisClient();
 
+        $tags = $client->smembers($key.':tags');
+
+        return $tags ? $tags : false;
     }
 
     /**
@@ -333,6 +388,50 @@ class Predis extends AbstractAdapter implements
      */
     public function clearByTags(array $tags, $disjunction = false)
     {
+        $client = $this->getPredisClient();
 
+        $keys = [];
+
+        foreach($tags as $tag)
+        {
+            $tag_keys = $client->smembers('tags:'.$tag);
+
+            foreach($tag_keys as $key)
+            {
+                if(!isset($key, $keys)) $keys[$key] = [];
+                $keys[$key][] = $tag;
+            }
+        }
+
+        if($disjunction) // delete all keys regardless of tag composition
+        {
+            $this->removeItems(array_keys($keys));
+        }
+        else // delete only keys that contain all of the provided tags
+        {
+            $keys_to_remove = [];
+
+            foreach($keys as $key=>$key_tags)
+            {
+                $contains_all = true;
+
+                foreach($tags as $tag)
+                {
+                    if(!in_array($tag, $key_tags))
+                    {
+                        $contains_all = false;
+                        break;
+                    }
+                }
+
+                if($contains_all)
+                {
+                    $keys_to_remove[] = $key;
+
+                }
+            }
+
+            $this->removeItems($keys_to_remove);
+        }
     }
 }
