@@ -204,11 +204,6 @@ class PredisTest extends \PHPUnit\Framework\TestCase
         $this->assertGreaterThan(0, $this->storage->getTotalSpace());
     }
 
-    public function testClearByPrefix()
-    {
-
-    }
-
     public function testSetTagsOnNonExistentItemsReturnsFalse()
     {
         $this->assertFalse($this->storage->setTags('key', ['tag1', 'tag2', 'tag3']));
@@ -294,6 +289,27 @@ class PredisTest extends \PHPUnit\Framework\TestCase
         $res_tags = $this->storage->getTags($key);
 
         $this->assertEquals(['new_tag2', 'new_tag1'], $res_tags);
+    }
+
+    public function testClearByNamespace()
+    {
+        $key = 'key';
+        $this->assertTrue($this->storage->setItem($key, 100));
+
+        $this->storage->clearByNamespace('zfcache');
+
+        $this->assertFalse($this->storage->hasItem($key));
+    }
+
+    public function testClearByPrefix()
+    {
+        $this->assertTrue($this->storage->setItem('prefixed_key', 100));
+        $this->assertTrue($this->storage->setItem('key', 200));
+
+        $this->storage->clearByPrefix('prefixed_');
+
+        $this->assertFalse($this->storage->hasItem('prefixed_key'));
+        $this->assertTrue($this->storage->hasItem('key'));
     }
 
     // TODO: Test clearByNamespace, clearByPrefix, flush, getTotalSpace, setTags, getTags, clearByTags

@@ -50,20 +50,6 @@ class PredisOptions extends AdapterOptions
      */
     public function getPredisClientOptions()
     {
-        if($this->getNamespace() !== '')
-        {
-            $separator = $this->getNamespaceSeparator();
-
-            if(isset($this->predis_client_options['prefix']))
-            {
-                $this->predis_client_options['prefix'] .= $separator.$this->getNamespace().$separator;
-            }
-            else
-            {
-                $this->predis_client_options['prefix'] = $this->getNamespace().$separator;
-            }
-        }
-
         return $this->predis_client_options;
     }
 

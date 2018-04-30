@@ -33,6 +33,13 @@ class Predis extends AbstractAdapter implements
     protected $predis_client = null;
 
     /**
+     * The namespace prefix
+     *
+     * @var string
+     */
+    protected $namespacePrefix = '';
+
+    /**
      * Create new Adapter for predis storage
      *
      * @param null|array|Traversable|PredisOptions $options
@@ -54,6 +61,18 @@ class Predis extends AbstractAdapter implements
 
             // update initialized flag
             $this->initialized = true;
+
+            // init namespace prefix
+            $namespace = $options->getNamespace();
+
+            if($namespace !== '')
+            {
+                $this->namespacePrefix = $namespace . $options->getNamespaceSeparator();
+            }
+            else
+            {
+                $this->namespacePrefix = '';
+            }
         }
 
         return $this->predis_client;
@@ -99,7 +118,7 @@ class Predis extends AbstractAdapter implements
     {
         $client = $this->getPredisClient();
 
-        $value = $client->get($normalizedKey);
+        $value = $client->get($this->namespacePrefix . $normalizedKey);
 
         if($value === NULL)
         {
@@ -120,7 +139,14 @@ class Predis extends AbstractAdapter implements
     {
         $client = $this->getPredisClient();
 
-        $results = $client->mGet($normalizedKeys);
+        $namespacedKeys = [];
+
+        foreach($normalizedKeys as $normalizedKey)
+        {
+            $namespacedKeys[] = $this->namespacePrefix . $normalizedKey;
+        }
+
+        $results = $client->mGet($namespacedKeys);
 
         //combine the key => value pairs and remove all missing values
         return array_filter(
@@ -138,7 +164,7 @@ class Predis extends AbstractAdapter implements
     {
         $client = $this->getPredisClient();
 
-        return (bool)$client->exists($normalizedKey);
+        return (bool)$client->exists($this->namespacePrefix . $normalizedKey);
     }
 
     /**
@@ -152,11 +178,11 @@ class Predis extends AbstractAdapter implements
 
         if($ttl)
         {
-            $response = $client->setex($normalizedKey, $ttl, $value);
+            $response = $client->setex($this->namespacePrefix . $normalizedKey, $ttl, $value);
         }
         else
         {
-            $response = $client->set($normalizedKey, $value);
+            $response = $client->set($this->namespacePrefix . $normalizedKey, $value);
         }
 
 
@@ -172,11 +198,18 @@ class Predis extends AbstractAdapter implements
         $options = $this->getOptions();
         $ttl     = $options->getTtl();
 
+        $namespacedKeyValuePairs = [];
+
+        foreach($normalizedKeyValuePairs as $normalizedKey => $value)
+        {
+            $namespacedKeyValuePairs[$this->namespacePrefix . $normalizedKey] = $value;
+        }
+
         if($ttl)
         {
             $pipe = $client->pipeline();
 
-            foreach($normalizedKeyValuePairs as $key => $value)
+            foreach($namespacedKeyValuePairs as $key => $value)
             {
                 $pipe->setex($key, $ttl, $value);
             }
@@ -185,7 +218,7 @@ class Predis extends AbstractAdapter implements
         }
         else
         {
-            $client->mset($normalizedKeyValuePairs);
+            $client->mset($namespacedKeyValuePairs);
         }
 
         return [];
@@ -199,7 +232,7 @@ class Predis extends AbstractAdapter implements
         $client = $this->getPredisClient();
         $ttl    = $this->getOptions()->getTtl();
 
-        return (bool)$client->expire($normalizedKey, $ttl);
+        return (bool)$client->expire($this->namespacePrefix . $normalizedKey, $ttl);
     }
 
     /**
@@ -212,7 +245,7 @@ class Predis extends AbstractAdapter implements
         $client = $this->getPredisClient();
         $metadata = [];
 
-        $pttl = $client->pttl($normalizedKey);
+        $pttl = $client->pttl($this->namespacePrefix . $normalizedKey);
 
         if($pttl <= -2)
         {
@@ -238,7 +271,7 @@ class Predis extends AbstractAdapter implements
             $this->setTags($normalizedKey, []);
         }
 
-        return (bool)$client->del([$normalizedKey]);
+        return (bool)$client->del([$this->namespacePrefix . $normalizedKey]);
     }
 
     /**
@@ -248,8 +281,12 @@ class Predis extends AbstractAdapter implements
     {
         $client = $this->getPredisClient();
 
+        $namespacedKeys = [];
+
         foreach($normalizedKeys as $normalizedKey)
         {
+            $namespacedKeys[] = $this->namespacePrefix . $normalizedKey;
+
             $tags = $this->getTags($normalizedKey);
 
             if($tags)
@@ -258,7 +295,7 @@ class Predis extends AbstractAdapter implements
             }
         }
 
-        return $client->del($normalizedKeys);
+        return $client->del($namespacedKeys);
     }
 
     /**
@@ -268,7 +305,7 @@ class Predis extends AbstractAdapter implements
     {
         $client = $this->getPredisClient();
 
-        return $client->incrby($normalizedKey, $value);
+        return $client->incrby($this->namespacePrefix . $normalizedKey, $value);
     }
 
     /**
@@ -278,7 +315,7 @@ class Predis extends AbstractAdapter implements
     {
         $client = $this->getPredisClient();
 
-        return $client->decrby($normalizedKey, $value);
+        return $client->decrby($this->namespacePrefix . $normalizedKey, $value);
     }
 
     /* ClearByNamespaceInterface */
@@ -288,7 +325,21 @@ class Predis extends AbstractAdapter implements
      */
     public function clearByNamespace($namespace)
     {
+        $client = $this->getPredisClient();
 
+        $namespace = (string)$namespace;
+
+        if($namespace === '')
+        {
+            throw new Exception\InvalidArgumentException('No namespace given');
+        }
+
+        $options = $this->getOptions();
+        $prefix  = $namespace . $options->getNamespaceSeparator();
+
+        $client->del($client->keys($prefix . '*'));
+
+        return true;
     }
 
     /* ClearByPrefixInterface */
@@ -298,7 +349,22 @@ class Predis extends AbstractAdapter implements
      */
     public function clearByPrefix($prefix)
     {
+        $client = $this->getPredisClient();
 
+        $prefix = (string)$prefix;
+
+        if($prefix === '')
+        {
+            throw new Exception\InvalidArgumentException('No prefix given');
+        }
+
+        $options   = $this->getOptions();
+        $namespace = $options->getNamespace();
+        $prefix    = ($namespace === '') ? '' : $namespace . $options->getNamespaceSeparator() . $prefix;
+
+        $client->del($client->keys($prefix.'*'));
+
+        return true;
     }
 
     /* FlushableInterface */
@@ -349,22 +415,22 @@ class Predis extends AbstractAdapter implements
             // remove the key from each tags set
             foreach($key_tags as $tag)
             {
-                $client->srem('tags:'.$tag, $key);
+                $client->srem($this->namespacePrefix . 'tags:' . $tag, $key);
             }
 
             // remove the tags in the key tag set
-            $client->del([$key.':tags']);
+            $client->del([$this->namespacePrefix . $key . ':tags']);
         }
 
         if($tags)
         {
             // add the tags to the key tag set
-            $client->sadd($key.':tags', $tags);
+            $client->sadd($this->namespacePrefix . $key . ':tags', $tags);
 
             // add the key to each tags set
             foreach($tags as $tag)
             {
-                $client->sadd('tags:'.$tag, $key);
+                $client->sadd($this->namespacePrefix . 'tags:' . $tag, $key);
             }
         }
 
@@ -378,7 +444,7 @@ class Predis extends AbstractAdapter implements
     {
         $client = $this->getPredisClient();
 
-        $tags = $client->smembers($key.':tags');
+        $tags = $client->smembers($this->namespacePrefix . $key . ':tags');
 
         return $tags ? $tags : false;
     }
@@ -394,7 +460,7 @@ class Predis extends AbstractAdapter implements
 
         foreach($tags as $tag)
         {
-            $tag_keys = $client->smembers('tags:'.$tag);
+            $tag_keys = $client->smembers($this->namespacePrefix . 'tags:' . $tag);
 
             foreach($tag_keys as $key)
             {
