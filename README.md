@@ -1,2 +1,2 @@
 # zend-cache-redis
-Redis adapter for Zend framework with tag support
+Redis adapter for Zend framework 3 with tagging support
