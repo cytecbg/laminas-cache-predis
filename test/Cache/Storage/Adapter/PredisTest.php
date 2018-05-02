@@ -16,12 +16,9 @@ class PredisTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        StorageFactory::getAdapterPluginManager()->setFactory(Predis::class, InvokableFactory::class);
-        StorageFactory::getAdapterPluginManager()->setAlias('predis', Predis::class);
-
         $this->storage = StorageFactory::factory([
             'adapter' => [
-                'name'    => 'predis',
+                'name'    => Predis::class,
                 'options' => ['ttl' => 3600],
             ],
             'plugins' => ['serializer'],
@@ -282,13 +279,14 @@ class PredisTest extends \PHPUnit\Framework\TestCase
     {
         $key = 'key';
         $tags = ['tag1', 'tag2', 'tag3'];
+        $new_tags = ['new_tag2', 'new_tag1'];
         $this->assertTrue($this->storage->setItem($key, 100));
         $this->assertTrue($this->storage->setTags($key, $tags));
-        $this->assertTrue($this->storage->setTags($key, ['new_tag1', 'new_tag2']));
+        $this->assertTrue($this->storage->setTags($key, $new_tags));
 
         $res_tags = $this->storage->getTags($key);
 
-        $this->assertEquals(['new_tag2', 'new_tag1'], $res_tags);
+        $this->assertEquals(sort($new_tags), sort($res_tags));
     }
 
     public function testClearByNamespace()
@@ -311,6 +309,4 @@ class PredisTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($this->storage->hasItem('prefixed_key'));
         $this->assertTrue($this->storage->hasItem('key'));
     }
-
-    // TODO: Test clearByNamespace, clearByPrefix, flush, getTotalSpace, setTags, getTags, clearByTags
 }

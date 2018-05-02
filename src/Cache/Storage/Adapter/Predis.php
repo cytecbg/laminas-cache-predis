@@ -469,6 +469,8 @@ class Predis extends AbstractAdapter implements
             }
         }
 
+        if(!$keys) return;
+
         if($disjunction) // delete all keys regardless of tag composition
         {
             $this->removeItems(array_keys($keys));
