@@ -1,10 +1,10 @@
-# zend-cache-redis
+# cytec/zend3-cache-predis
 Redis adapter for Zend framework 3 with tagging support
 
 Installation
 ---
 ```
-composer require cytec/zend-log-slack
+composer require cytec/zend3-cache-predis
 ```
 
 Configuration
