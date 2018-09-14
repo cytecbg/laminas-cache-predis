@@ -6,6 +6,8 @@ use Zend\Cache\Exception;
 
 class PredisOptions extends AdapterOptions
 {
+    protected $__strictMode__ = false;
+    
     /**
      * Options that are passed to the Predis client class
      *
