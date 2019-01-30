@@ -337,10 +337,20 @@ class Predis extends AbstractAdapter implements
         $options = $this->getOptions();
         $prefix  = $namespace . $options->getNamespaceSeparator();
 
-        $client->del($client->keys($prefix . '*'));
+        $client_options = $options->getPredisClientOptions();
+        $client_prefix = $client_options['prefix'];
+
+        $keys = $client->keys($prefix . '*');
+
+        foreach($keys as $index=>$key)
+        {
+            $keys[$index] = str_replace($client_prefix, "", $key);
+        }
+
+        $client->del($keys);
 
         return true;
-    }
+     }
 
     /* ClearByPrefixInterface */
 
