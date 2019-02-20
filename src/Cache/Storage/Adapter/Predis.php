@@ -347,7 +347,10 @@ class Predis extends AbstractAdapter implements
             $keys[$index] = str_replace($client_prefix, "", $key);
         }
 
-        $client->del($keys);
+        if(count($keys) > 0)
+        {
+            $client->del($keys);
+        }
 
         return true;
      }
