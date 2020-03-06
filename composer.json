@@ -1,34 +1,34 @@
 {
-  "name": "cytec/zend3-cache-predis",
-  "description": "Redis adapter for Zend Framework 3 with tagging support",
-  "license": "BSD-3-Clause",
-  "keywords": [
-    "zf2",
-    "zf3",
-    "cache",
-    "redis",
-    "predis",
-    "tag",
-    "taggable"
-  ],
-  "homepage": "https://github.com/cytecbg/zend3-cache-predis",
-  "autoload": {
-    "psr-4": {
-      "Cytec\\Cache\\" : "src/Cache/"
+    "name": "cytec/laminas-cache-predis",
+    "description": "Redis adapter for Laminas Framework 3 with tagging support",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "zf2",
+        "zf3",
+        "cache",
+        "redis",
+        "predis",
+        "tag",
+        "taggable"
+    ],
+    "homepage": "https://github.com/cytecbg/laminas-cache-predis",
+    "autoload": {
+        "psr-4": {
+            "Cytec\\Cache\\": "src/Cache/"
+        }
+    },
+    "require": {
+        "php": "^5.6 || ^7.0",
+        "laminas/laminas-cache": "^2.8",
+        "predis/predis": "^1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.0 || ^5.0",
+        "laminas/laminas-serializer": "^2.8"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "php vendor/bin/phpunit"
     }
-  },
-  "require": {
-    "php": "^5.6 || ^7.0",
-    "zendframework/zend-cache": "^2.8",
-    "predis/predis": "^1.1"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "^4.0 || ^5.0",
-    "zendframework/zend-serializer": "^2.8"
-  },
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "scripts": {
-    "test": "php vendor/bin/phpunit"
-  }
 }

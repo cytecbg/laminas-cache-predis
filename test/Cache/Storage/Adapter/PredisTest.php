@@ -2,8 +2,8 @@
 
 namespace CytecTest\Cache\Storage\Adapter;
 
-use Zend\Cache\StorageFactory;
-use Zend\ServiceManager\Factory\InvokableFactory;
+use Laminas\Cache\StorageFactory;
+use Laminas\ServiceManager\Factory\InvokableFactory;
 
 use Cytec\Cache\Storage\Adapter\Predis;
 

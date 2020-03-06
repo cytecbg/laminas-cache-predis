@@ -1,8 +1,8 @@
 <?php
 namespace Cytec\Cache\Storage\Adapter;
 
-use Zend\Cache\Storage\Adapter\AdapterOptions;
-use Zend\Cache\Exception;
+use Laminas\Cache\Storage\Adapter\AdapterOptions;
+use Laminas\Cache\Exception;
 
 class PredisOptions extends AdapterOptions
 {

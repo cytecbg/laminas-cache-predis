@@ -2,13 +2,13 @@
 
 namespace Cytec\Cache\Storage\Adapter;
 
-use Zend\Cache\Storage\Adapter\AbstractAdapter;
-use Zend\Cache\Storage\ClearByNamespaceInterface;
-use Zend\Cache\Storage\ClearByPrefixInterface;
-use Zend\Cache\Storage\FlushableInterface;
-use Zend\Cache\Storage\TotalSpaceCapableInterface;
-use Zend\Cache\Storage\TaggableInterface;
-use Zend\Cache\Exception;
+use Laminas\Cache\Storage\Adapter\AbstractAdapter;
+use Laminas\Cache\Storage\ClearByNamespaceInterface;
+use Laminas\Cache\Storage\ClearByPrefixInterface;
+use Laminas\Cache\Storage\FlushableInterface;
+use Laminas\Cache\Storage\TotalSpaceCapableInterface;
+use Laminas\Cache\Storage\TaggableInterface;
+use Laminas\Cache\Exception;
 
 use Predis\Client as PredisClient;
 
@@ -43,7 +43,7 @@ class Predis extends AbstractAdapter implements
      * Create new Adapter for predis storage
      *
      * @param null|array|Traversable|PredisOptions $options
-     * @see \Zend\Cache\Storage\Adapter\Abstract
+     * @see \Laminas\Cache\Storage\Adapter\Abstract
      */
     public function __construct($options = null)
     {
