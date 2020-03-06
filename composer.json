@@ -9,7 +9,8 @@
         "redis",
         "predis",
         "tag",
-        "taggable"
+        "taggable",
+        "laminas"
     ],
     "homepage": "https://github.com/cytecbg/laminas-cache-predis",
     "autoload": {

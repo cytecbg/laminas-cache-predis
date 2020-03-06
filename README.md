@@ -1,5 +1,5 @@
-# cytec/zend3-cache-predis
-Redis adapter for Zend framework 3 with tagging support
+# cytec/laminas-cache-predis
+Redis adapter for Laminas framework with tagging support
 
 Installation
 ---
