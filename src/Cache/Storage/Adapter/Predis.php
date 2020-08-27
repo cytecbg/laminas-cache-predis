@@ -317,6 +317,18 @@ class Predis extends AbstractAdapter implements
 
         return $client->decrby($this->namespacePrefix . $normalizedKey, $value);
     }
+    
+    /**
+     * {@inheritdoc}
+     */
+    protected function internalGetCapabilities()
+    {
+        parent::internalGetCapabilities();
+        
+        $this->capabilities->setMaxKeyLength($this->capabilityMarker, 2147483647);
+        
+        return $this->capabilities;
+    }
 
     /* ClearByNamespaceInterface */
 
