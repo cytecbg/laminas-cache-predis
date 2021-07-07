@@ -4,7 +4,7 @@ Redis adapter for Laminas framework with tagging support
 Installation
 ---
 ```
-composer require cytec/zend3-cache-predis
+composer require cytec/laminas-cache-predis
 ```
 
 Configuration

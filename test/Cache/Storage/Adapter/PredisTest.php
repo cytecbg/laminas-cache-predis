@@ -14,7 +14,7 @@ class PredisTest extends \PHPUnit\Framework\TestCase
      */
     private $storage;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->storage = StorageFactory::factory([
             'adapter' => [
@@ -27,7 +27,7 @@ class PredisTest extends \PHPUnit\Framework\TestCase
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         if ($this->storage) {
             $this->storage->flush();
@@ -294,7 +294,7 @@ class PredisTest extends \PHPUnit\Framework\TestCase
         $key = 'key';
         $this->assertTrue($this->storage->setItem($key, 100));
 
-        $this->storage->clearByNamespace('zfcache');
+        $this->storage->clearByNamespace('laminascache');
 
         $this->assertFalse($this->storage->hasItem($key));
     }
