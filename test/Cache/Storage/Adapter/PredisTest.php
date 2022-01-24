@@ -2,8 +2,13 @@
 
 namespace CytecTest\Cache\Storage\Adapter;
 
-use Laminas\Cache\StorageFactory;
-use Laminas\ServiceManager\Factory\InvokableFactory;
+//use Laminas\Cache\StorageFactory;
+//use Laminas\ServiceManager\Factory\InvokableFactory;
+
+use Laminas\Cache\ConfigProvider;
+use Laminas\Cache\Service\StorageAdapterFactoryInterface;
+use Laminas\ConfigAggregator\ConfigAggregator;
+use Laminas\ServiceManager\ServiceManager;
 
 use Cytec\Cache\Storage\Adapter\Predis;
 
@@ -16,12 +21,24 @@ class PredisTest extends \PHPUnit\Framework\TestCase
 
     public function setUp(): void
     {
-        $this->storage = StorageFactory::factory([
-            'adapter' => [
-                'name'    => Predis::class,
-                'options' => ['ttl' => 3600],
+        $config = (new ConfigAggregator([
+            ConfigProvider::class,
+            Predis\ConfigProvider::class,
+        ]))->getMergedConfig();
+
+        $dependencies = $config['dependencies'];
+        
+        $container = new ServiceManager($dependencies);
+
+        /** @var StorageAdapterFactoryInterface $storageFactory */
+        $storageFactory = $container->get(StorageAdapterFactoryInterface::class);
+        
+        $this->storage = $storageFactory->createFromArrayConfiguration([
+            'adapter' => Predis::class,
+            'options' => ['ttl' => 3600],
+            'plugins' => [
+                ['name' => 'serializer']
             ],
-            'plugins' => ['serializer'],
         ]);
 
         parent::setUp();
