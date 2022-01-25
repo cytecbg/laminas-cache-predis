@@ -2,9 +2,6 @@
 
 namespace CytecTest\Cache\Storage\Adapter;
 
-//use Laminas\Cache\StorageFactory;
-//use Laminas\ServiceManager\Factory\InvokableFactory;
-
 use Laminas\Cache\ConfigProvider;
 use Laminas\Cache\Service\StorageAdapterFactoryInterface;
 use Laminas\ConfigAggregator\ConfigAggregator;

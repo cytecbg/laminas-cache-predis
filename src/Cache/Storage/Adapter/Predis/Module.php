@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cytec\Cache\Storage\Adapter\Filesystem;
+namespace Cytec\Cache\Storage\Adapter\Predis;
 
 use function assert;
 use function is_array;

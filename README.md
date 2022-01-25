@@ -16,24 +16,37 @@ Somewhere in your configuration (eg. config/autoload/global.php) add
 ...
 'caches' => [
     'AppCache' => [
-        'plugins' => ['serializer'],
-        'adapter' => [
-            'name' => 'Cytec\Cache\Storage\Adapter\Predis',
-            'options' => [
-                'ttl' => 600,
-                'predis_client_connections' => [
-                    'host' => '127.0.0.1',
-                    'port' => 6379,
-                ],
-                'predis_client_options' => [
-                    'profile' => '2.4',
-                    'prefix'  => 'ns:'
-                ]
+        'adapter' => 'Cytec\Cache\Storage\Adapter\Predis',
+        'options' => [
+            'ttl' => 600,
+            'predis_client_connections' => [
+                'host' => '127.0.0.1',
+                'port' => 6379,
             ],
+            'predis_client_options' => [
+                'profile' => '2.4',
+                'prefix'  => 'ns:'
+            ]
         ],
-    ],
-]
+        'plugins' => [
+            ['name' => 'serializer']
+        ],
+    ]
+],
 ...
+```
+
+Since laminas-cache v3 storage adapters need to be registered as modules:
+
+`modules.config.php`:
+
+```php
+<?php
+
+return [
+    ...{your other modules}...
+    'Cytec\Cache\Storage\Adapter\Predis',
+];
 ```
 
 The `predis_client_connections` option is passed directly as the first argument when creating the Predis client and
